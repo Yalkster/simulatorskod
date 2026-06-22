@@ -13,6 +13,13 @@
   *{box-sizing:border-box;}
   @keyframes coakPulse{0%{box-shadow:0 0 0 0 rgba(0,55,129,.5);}70%{box-shadow:0 0 0 13px rgba(0,55,129,0);}100%{box-shadow:0 0 0 0 rgba(0,55,129,0);}}
   input[type=range]{accent-color:#0066CC;}
+  @keyframes flameRise{0%{opacity:1;transform:translateY(0) scale(1.1);}100%{opacity:0;transform:translateY(-55px) scale(0.3);}}
+  @keyframes snowFall{0%{opacity:1;transform:translateY(0);}100%{opacity:.1;transform:translateY(550px) translateX(12px);}}
+  @keyframes lightFlash{0%,79%,100%{opacity:0;}80%,88%{opacity:1;}84%,92%{opacity:.2;}}
+  @keyframes dropFade{0%{opacity:0;transform:scale(.4);}25%{opacity:1;transform:scale(1);}100%{opacity:0;transform:scale(1.8) translateY(-8px);}}
+  @keyframes shake{0%,100%{transform:translate(0,0) rotate(0deg);}15%,55%{transform:translate(-6px,3px) rotate(-.5deg);}30%,70%{transform:translate(6px,-3px) rotate(.5deg);}45%,85%{transform:translate(-4px,5px) rotate(-.3deg);}}
+  @keyframes waveSway{0%,100%{transform:translateX(0);}50%{transform:translateX(10px);}}
+  @keyframes thiefBob{0%,100%{transform:translateY(0) scale(1);}50%{transform:translateY(-5px) scale(1.05);}}
 </style>
 </helmet>
 
@@ -52,7 +59,7 @@
 
       <!-- ISO STAGE -->
       <div style="padding:20px;background:radial-gradient(130% 130% at 50% 8%,#F7F9FC 0%,#E7EDF5 100%);display:flex;justify-content:center;">
-        <div style="position:relative;width:700px;height:520px;">
+        <div style="position:relative;width:700px;height:520px;{{zemShakeAnim}}">
           <svg viewBox="0 0 700 520" style="width:700px;height:520px;display:block;overflow:visible;">
             <sc-for list="{{shapes}}" as="s" hint-placeholder-count="60">
               <polygon points="{{s.points}}" fill="{{s.fill}}" stroke="{{s.stroke}}" stroke-width="{{s.sw}}" stroke-linejoin="round"></polygon>
@@ -66,6 +73,62 @@
               <span style="{{hs.tagStyle}}">{{hs.label}} · {{hs.costStr}}</span>
             </button>
           </sc-for>
+
+          <!-- === EFEKTY === -->
+
+          <!-- Požiar: plamene po celom byte -->
+          <sc-if value="{{pozarOn}}" hint-placeholder-val="{{false}}">
+            <div style="position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:8;">
+              <sc-for list="{{flames}}" as="fl" hint-placeholder-count="0">
+                <div style="{{fl.s}}">🔥</div>
+              </sc-for>
+            </div>
+          </sc-if>
+
+          <!-- Vytopenie od suseda: voda do 2/3 výšky bytu -->
+          <sc-if value="{{vytopeniOn}}" hint-placeholder-val="{{false}}">
+            <div style="position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:8;clip-path:polygon(47% 29%, 87% 57%, 54% 80%, 15% 52%);">
+              <div style="position:absolute;left:0;right:0;bottom:0;height:65%;background:linear-gradient(to top,rgba(10,100,200,.68) 0%,rgba(20,120,220,.52) 38%,rgba(40,140,240,.30) 65%,transparent 100%);animation:waveSway 2s ease-in-out infinite;"></div>
+              <div style="position:absolute;left:0;right:0;bottom:64.5%;height:5px;background:rgba(80,160,255,.80);border-radius:3px;box-shadow:0 0 14px rgba(80,160,255,.65);animation:waveSway 1.6s ease-in-out infinite reverse;"></div>
+            </div>
+          </sc-if>
+
+          <!-- Víchrica a krupobitie: padajúci sneh a krúpy -->
+          <sc-if value="{{vichricaOn}}" hint-placeholder-val="{{false}}">
+            <div style="position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:8;">
+              <sc-for list="{{snowflakes}}" as="sf" hint-placeholder-count="0">
+                <div style="{{sf.s}}">{{sf.g}}</div>
+              </sc-for>
+            </div>
+          </sc-if>
+
+          <!-- Skrat a prepätie: blesky na elektrospotrebičoch -->
+          <sc-if value="{{skratOn}}" hint-placeholder-val="{{false}}">
+            <div style="position:absolute;inset:0;pointer-events:none;z-index:8;">
+              <sc-for list="{{bolts}}" as="bt" hint-placeholder-count="0">
+                <div style="{{bt.s}}">⚡</div>
+              </sc-for>
+            </div>
+          </sc-if>
+
+          <!-- Vodovodná škoda: striekajúca voda -->
+          <sc-if value="{{vodaOn}}" hint-placeholder-val="{{false}}">
+            <div style="position:absolute;inset:0;pointer-events:none;z-index:8;">
+              <sc-for list="{{sprays}}" as="sp" hint-placeholder-count="0">
+                <div style="{{sp.s}}">💧</div>
+              </sc-for>
+            </div>
+          </sc-if>
+
+          <!-- Krádež a lúpež: spotrebiče 50 % opacity + zlodej v kukle -->
+          <sc-if value="{{kradezOn}}" hint-placeholder-val="{{false}}">
+            <div style="position:absolute;inset:0;pointer-events:none;z-index:9;">
+              <sc-for list="{{thieves}}" as="th" hint-placeholder-count="0">
+                <div style="{{th.s}}">🥷</div>
+              </sc-for>
+            </div>
+          </sc-if>
+
         </div>
       </div>
 
@@ -540,6 +603,65 @@ class Component extends DCLogic {
     if (activeCount > 0 && coveredCount < activeCount) recommendText = 'Tip: pre plné krytie zvoľte balík Max alebo doplňte pripoistenia.';
     else if (activeCount === 0) recommendText = '';
 
+    // ---- EFEKTY ----
+    const pozarOn = !!s.active.pozar;
+    const vytopeniOn = !!s.active.vytopenie;
+    const vichricaOn = !!s.active.vichrica;
+    const skratOn = !!s.active.skrat;
+    const vodaOn = !!s.active.voda;
+    const kradezOn = !!s.active.kradez;
+    const zemOn = !!s.active.zemetrasenie;
+    const zemShakeAnim = zemOn ? 'animation:shake 0.35s infinite;transform-origin:center bottom;' : '';
+
+    // Flames — požiar (rozložené po celom byte)
+    const flameCoords = [[0.6,3.2],[1.5,4.1],[2.5,2.9],[1.0,4.6],[3.1,3.7],[3.6,4.3],[4.5,3.0],[5.0,2.5],[4.1,4.6],[5.1,3.8],[2.0,3.4],[0.5,3.9],[0.6,0.8],[1.8,0.6],[2.4,1.5],[4.7,4.8],[3.7,2.6],[1.2,2.8]];
+    const flames = flameCoords.map((c,i) => {
+      const p = this.proj(c[0],c[1],0.02);
+      const dur = (1.0+(i%5)*0.28).toFixed(2);
+      const del = ((i*0.19)%1.1).toFixed(2);
+      const fs = 16+(i%4)*7;
+      return { s:'position:absolute;left:'+(p.x-fs*0.4).toFixed(0)+'px;top:'+(p.y-fs*0.4).toFixed(0)+'px;font-size:'+fs+'px;animation:flameRise '+dur+'s '+del+'s ease-out infinite;pointer-events:none;' };
+    });
+
+    // Snowflakes — víchrica a krupobitie
+    const sfG = ['❄','•','·','❅','•','·','❆','∘'];
+    const snowflakes = Array.from({length:24},(_,i) => {
+      const x = 60+(i*29+i*i*3)%600;
+      const dur = (2.2+(i%6)*0.4).toFixed(1);
+      const del = ((i*0.22)%2.2).toFixed(2);
+      const fs = 7+(i%5)*5;
+      return { g:sfG[i%sfG.length], s:'position:absolute;left:'+x+'px;top:-20px;font-size:'+fs+'px;color:rgba(200,230,255,.9);animation:snowFall '+dur+'s '+del+'s linear infinite;' };
+    });
+
+    // Lightning bolts — skrat (elektrospotrebiče)
+    const boltPos = [this.proj(0.04,3.0,0.85),this.proj(5.56,2.52,0.82),this.proj(4.34,2.47,0.92),this.proj(4.95,2.50,0.54),this.proj(5.44,3.20,0.64)];
+    const bolts = boltPos.map((p,i) => {
+      const dur = (0.6+(i%3)*0.2).toFixed(1);
+      const del = ((i*0.3)%0.9).toFixed(2);
+      return { s:'position:absolute;left:'+(p.x-14).toFixed(0)+'px;top:'+(p.y-14).toFixed(0)+'px;font-size:28px;color:#FFD700;text-shadow:0 0 8px #FF8C00;animation:lightFlash '+dur+'s '+del+'s infinite;' };
+    });
+
+    // Water sprays — vodovodná škoda
+    const spOrig = [this.proj(3.5,1.0,0.65),this.proj(4.68,1.8,0.75)];
+    const sprays = Array.from({length:12},(_,i) => {
+      const o = spOrig[i<7?0:1];
+      const ang = i*42;
+      const d = 14+(i*13)%32;
+      const dx = Math.cos(ang*Math.PI/180)*d;
+      const dy = Math.sin(ang*Math.PI/180)*d*0.55;
+      const dur = (0.7+(i%4)*0.2).toFixed(1);
+      const del = ((i*0.15)%0.7).toFixed(2);
+      return { s:'position:absolute;left:'+(o.x+dx-10).toFixed(0)+'px;top:'+(o.y+dy-10).toFixed(0)+'px;font-size:18px;animation:dropFade '+dur+'s '+del+'s ease-out infinite;' };
+    });
+
+    // Thieves — krádež (pri každom elektrospotrebiči)
+    const applList = [{g:[0.04,3.025,0.75],sz:54},{g:[5.56,2.55,0.48],sz:40},{g:[4.34,2.47,0.76],sz:36},{g:[4.95,2.50,0.27],sz:34}];
+    const thieves = applList.map((a,i) => {
+      const p = this.proj(a.g[0],a.g[1],a.g[2]);
+      const h = a.sz*0.5;
+      return { s:'position:absolute;left:'+(p.x-h).toFixed(0)+'px;top:'+(p.y-h).toFixed(0)+'px;width:'+a.sz+'px;height:'+a.sz+'px;font-size:'+Math.round(a.sz*0.52)+'px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.50);animation:thiefBob 1.8s '+(i*0.45).toFixed(1)+'s ease-in-out infinite;' };
+    });
+
     // calculator button styles
     const segOn = { flex: 1, padding: '11px', borderRadius: '9px', border: '2px solid #004A93', background: '#004A93', color: '#fff', fontSize: '14px', fontWeight: 700, cursor: 'pointer' };
     const segOff = { flex: 1, padding: '11px', borderRadius: '9px', border: '2px solid #D5DCE8', background: '#fff', color: '#46506b', fontSize: '14px', fontWeight: 700, cursor: 'pointer' };
@@ -568,6 +690,8 @@ class Component extends DCLogic {
       comfortDot: pkgDot(s.pkg === 'comfort'), extraDot: pkgDot(s.pkg === 'extra'), maxDot: pkgDot(s.pkg === 'max'),
       vodaStyle: chip(riderOn('voda'), isMax), skloStyle: chip(riderOn('sklo'), isMax),
       kradezStyle: chip(riderOn('kradez'), isMax), zemStyle: chip(riderOn('zem'), isMax),
+      pozarOn, vytopeniOn, vichricaOn, skratOn, vodaOn, kradezOn, zemShakeAnim,
+      flames, snowflakes, bolts, sprays, thieves,
       yearsStr: Math.round(totalDamage / (premium * 12)) + ' rokov',
     };
   }
