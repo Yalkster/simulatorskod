@@ -17,7 +17,7 @@
   @keyframes snowFall{0%{opacity:1;transform:translateY(0);}100%{opacity:.1;transform:translateY(550px) translateX(12px);}}
   @keyframes lightFlash{0%,79%,100%{opacity:0;}80%,88%{opacity:1;}84%,92%{opacity:.2;}}
   @keyframes dropFade{0%{opacity:0;transform:scale(.4);}25%{opacity:1;transform:scale(1);}100%{opacity:0;transform:scale(1.8) translateY(-8px);}}
-  @keyframes shake{0%,100%{transform:translate(0,0) rotate(0deg);}15%,55%{transform:translate(-6px,3px) rotate(-.5deg);}30%,70%{transform:translate(6px,-3px) rotate(.5deg);}45%,85%{transform:translate(-4px,5px) rotate(-.3deg);}}
+  @keyframes shake{0%,100%{transform:translate(0,0) rotate(0deg);}15%,55%{transform:translate(-3px,1.5px) rotate(-.25deg);}30%,70%{transform:translate(3px,-1.5px) rotate(.25deg);}45%,85%{transform:translate(-2px,2.5px) rotate(-.15deg);}}
   @keyframes waveSway{0%,100%{transform:translateX(0);}50%{transform:translateX(10px);}}
   @keyframes thiefBob{0%,100%{transform:translateY(0) scale(1);}50%{transform:translateY(-5px) scale(1.05);}}
 </style>
@@ -88,8 +88,8 @@
           <!-- Vytopenie od suseda: voda do 2/3 výšky bytu -->
           <sc-if value="{{vytopeniOn}}" hint-placeholder-val="{{false}}">
             <div style="position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:8;clip-path:polygon(47% 29%, 87% 57%, 54% 80%, 15% 52%);">
-              <div style="position:absolute;left:0;right:0;bottom:0;height:65%;background:linear-gradient(to top,rgba(10,100,200,.68) 0%,rgba(20,120,220,.52) 38%,rgba(40,140,240,.30) 65%,transparent 100%);animation:waveSway 2s ease-in-out infinite;"></div>
-              <div style="position:absolute;left:0;right:0;bottom:64.5%;height:5px;background:rgba(80,160,255,.80);border-radius:3px;box-shadow:0 0 14px rgba(80,160,255,.65);animation:waveSway 1.6s ease-in-out infinite reverse;"></div>
+              <div style="position:absolute;left:0;right:0;bottom:0;height:33%;background:linear-gradient(to top,rgba(10,100,200,.34) 0%,rgba(20,120,220,.26) 38%,rgba(40,140,240,.15) 65%,transparent 100%);animation:waveSway 2s ease-in-out infinite;"></div>
+              <div style="position:absolute;left:0;right:0;bottom:32.5%;height:5px;background:rgba(80,160,255,.40);border-radius:3px;box-shadow:0 0 14px rgba(80,160,255,.33);animation:waveSway 1.6s ease-in-out infinite reverse;"></div>
             </div>
           </sc-if>
 
@@ -120,11 +120,20 @@
             </div>
           </sc-if>
 
+          <!-- Zemetrasenie: popadaný nábytok -->
+          <sc-if value="{{zemOn}}" hint-placeholder-val="{{false}}">
+            <div style="position:absolute;inset:0;pointer-events:none;z-index:7;">
+              <sc-for list="{{zemDebris}}" as="zd" hint-placeholder-count="0">
+                <div style="{{zd.s}}">{{zd.g}}</div>
+              </sc-for>
+            </div>
+          </sc-if>
+
           <!-- Krádež a lúpež: spotrebiče 50 % opacity + zlodej v kukle -->
           <sc-if value="{{kradezOn}}" hint-placeholder-val="{{false}}">
             <div style="position:absolute;inset:0;pointer-events:none;z-index:9;">
               <sc-for list="{{thieves}}" as="th" hint-placeholder-count="0">
-                <div style="{{th.s}}">🥷</div>
+                <div style="{{th.s}}">🦹</div>
               </sc-for>
             </div>
           </sc-if>
@@ -613,6 +622,24 @@ class Component extends DCLogic {
     const zemOn = !!s.active.zemetrasenie;
     const zemShakeAnim = zemOn ? 'animation:shake 0.35s infinite;transform-origin:center bottom;' : '';
 
+    // Debris — popadaný nábytok pri zemetrasení
+    const debrisDefs = [
+      { g:'🛋️', c:[1.0,3.8,0.44], r:85,  sz:32 },
+      { g:'📺', c:[0.14,3.1,0.78], r:-75, sz:26 },
+      { g:'🪑', c:[4.28,3.95,0.44], r:110, sz:22 },
+      { g:'🪑', c:[5.12,3.95,0.44], r:-95, sz:22 },
+      { g:'🛏️', c:[0.9,1.0,0.32],  r:42,  sz:30 },
+      { g:'🚿', c:[3.36,0.8,0.44],  r:65,  sz:22 },
+      { g:'🪴', c:[0.40,4.76,0.40], r:-50, sz:20 },
+      { g:'🖥️', c:[4.95,2.50,0.34], r:80,  sz:20 },
+      { g:'🪞', c:[4.74,0.10,0.79], r:-60, sz:20 },
+    ];
+    const zemDebris = zemOn ? debrisDefs.map(d => {
+      const p = this.proj(d.c[0], d.c[1], d.c[2]);
+      const h = d.sz * 0.5;
+      return { g: d.g, s: `position:absolute;left:${(p.x-h).toFixed(0)}px;top:${(p.y-h).toFixed(0)}px;font-size:${d.sz}px;transform:rotate(${d.r}deg);filter:drop-shadow(2px 4px 4px rgba(0,0,0,.55));` };
+    }) : [];
+
     // Flames — požiar (rozložené po celom byte)
     const flameCoords = [[0.6,3.2],[1.5,4.1],[2.5,2.9],[1.0,4.6],[3.1,3.7],[3.6,4.3],[4.5,3.0],[5.0,2.5],[4.1,4.6],[5.1,3.8],[2.0,3.4],[0.5,3.9],[0.6,0.8],[1.8,0.6],[2.4,1.5],[4.7,4.8],[3.7,2.6],[1.2,2.8]];
     const flames = flameCoords.map((c,i) => {
@@ -659,7 +686,7 @@ class Component extends DCLogic {
     const thieves = applList.map((a,i) => {
       const p = this.proj(a.g[0],a.g[1],a.g[2]);
       const h = a.sz*0.5;
-      return { s:'position:absolute;left:'+(p.x-h).toFixed(0)+'px;top:'+(p.y-h).toFixed(0)+'px;width:'+a.sz+'px;height:'+a.sz+'px;font-size:'+Math.round(a.sz*0.52)+'px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.50);animation:thiefBob 1.8s '+(i*0.45).toFixed(1)+'s ease-in-out infinite;' };
+      return { s:'position:absolute;left:'+(p.x-h).toFixed(0)+'px;top:'+(p.y-h).toFixed(0)+'px;width:'+a.sz+'px;height:'+a.sz+'px;font-size:'+Math.round(a.sz*0.52)+'px;display:flex;align-items:center;justify-content:center;filter:drop-shadow(0 2px 6px rgba(0,0,0,.7));animation:thiefBob 1.8s '+(i*0.45).toFixed(1)+'s ease-in-out infinite;' };
     });
 
     // calculator button styles
@@ -690,8 +717,8 @@ class Component extends DCLogic {
       comfortDot: pkgDot(s.pkg === 'comfort'), extraDot: pkgDot(s.pkg === 'extra'), maxDot: pkgDot(s.pkg === 'max'),
       vodaStyle: chip(riderOn('voda'), isMax), skloStyle: chip(riderOn('sklo'), isMax),
       kradezStyle: chip(riderOn('kradez'), isMax), zemStyle: chip(riderOn('zem'), isMax),
-      pozarOn, vytopeniOn, vichricaOn, skratOn, vodaOn, kradezOn, zemShakeAnim,
-      flames, snowflakes, bolts, sprays, thieves,
+      pozarOn, vytopeniOn, vichricaOn, skratOn, vodaOn, kradezOn, zemOn, zemShakeAnim,
+      flames, snowflakes, bolts, sprays, thieves, zemDebris,
       yearsStr: Math.round(totalDamage / (premium * 12)) + ' rokov',
     };
   }
