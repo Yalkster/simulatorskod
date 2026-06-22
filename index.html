@@ -32,7 +32,7 @@
   @keyframes gzLean{0%,100%{transform:rotate(-1.4deg);}34%,50%{transform:rotate(1.4deg);}}
   @keyframes gzBreath{0%,60%,100%{opacity:.2;}30%{opacity:.85;}}
   @keyframes gzDust{0%,26%{opacity:0;transform:scale(.2) translateY(0);}36%{opacity:.8;transform:scale(1) translateY(-5px);}100%{opacity:0;transform:scale(2.6) translateY(-34px);}}
-  @keyframes gzRing{0%,28%{opacity:0;transform:scaleX(.3) scaleY(.3);}35%{opacity:.75;transform:scaleX(1) scaleY(1);}100%{opacity:0;transform:scaleX(2.3) scaleY(2.3);}}
+  @keyframes quakeSync{0%,33%{transform:translate(0,0) rotate(0deg);}36%{transform:translate(-7px,4px) rotate(-1deg);}39%{transform:translate(7px,-3px) rotate(1deg);}42%{transform:translate(-4px,2px) rotate(-.5deg);}45%{transform:translate(3px,-1px) rotate(.3deg);}48%,100%{transform:translate(0,0) rotate(0deg);}}
 </style>
 </helmet>
 
@@ -110,7 +110,7 @@
                 </svg>
               </div>
             </div>
-            <!-- prach + razova vlna kde dupe (za bytom, vyckne nad zadnou hranou) -->
+            <!-- prach kde dupe -->
             <div style="position:absolute;left:495px;bottom:355px;width:140px;height:64px;z-index:1;pointer-events:none;">
               <div style="position:absolute;left:8px;bottom:0;width:56px;height:56px;border-radius:50%;background:radial-gradient(circle,rgba(200,180,160,.8),rgba(150,130,110,.18) 70%,transparent);animation:gzDust 1.5s ease-out infinite;"></div>
               <div style="position:absolute;left:46px;bottom:0;width:72px;height:72px;border-radius:50%;background:radial-gradient(circle,rgba(215,195,175,.75),rgba(150,130,110,.12) 70%,transparent);animation:gzDust 1.5s ease-out .05s infinite;"></div>
@@ -349,7 +349,7 @@
 <script type="text/x-dc" data-dc-script="">
 class Component extends DCLogic {
   state = {
-    active: { zemetrasenie: true },
+    active: {},
     type: 'byt',
     area: 68,
     areaDisp: 68,
@@ -687,7 +687,7 @@ class Component extends DCLogic {
     const vodaOn = !!s.active.voda;
     const kradezOn = !!s.active.kradez;
     const zemOn = !!s.active.zemetrasenie;
-    const zemShakeAnim = zemOn ? 'animation:shake 0.35s infinite;transform-origin:center bottom;' : '';
+    const zemShakeAnim = zemOn ? 'animation:quakeSync 1.5s cubic-bezier(.5,0,.7,1) infinite;transform-origin:center bottom;' : '';
 
     // Debris — popadaný nábytok pri zemetrasení
     const debrisDefs = [
